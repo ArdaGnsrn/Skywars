@@ -1,6 +1,9 @@
 # Skywars
 It's a discontinued Skywars plugin for Spigot. It's made for UnioCraft. Uploaded for archive purposes.
 
+# Note
+Edited it for personal usage, don't take it too seriously.
+
 ## Features
 - Fully functional Skywars experience.
 - Multiple games in one server.
