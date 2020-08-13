@@ -5,6 +5,7 @@ import me.uniodex.skywars.arena.Arena;
 import me.uniodex.skywars.player.SWOnlinePlayer;
 import me.uniodex.skywars.utils.ItemStackBuilder;
 import me.uniodex.skywars.utils.Utils;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -126,7 +127,14 @@ public class ClickableItemListeners implements Listener {
             if (Utils.compareItem(p.getItemInHand(), plugin.clickableItemManager.getSelectKitItem())) {
                 e.setCancelled(true);
                 if (swPlayer.getArena() != null && swPlayer.getArena().getArenaState().isAvailable()) {
-                    p.openInventory(plugin.menuManager.getKitInventory(swPlayer, swPlayer.getArena().getArenaMode()));
+                    p.openInventory(plugin.menuManager.getKitInventory(swPlayer, swPlayer.getArena().getArenaMode().toString()));
+                }
+                return;
+            }
+            if (Utils.compareItem(p.getItemInHand(), plugin.clickableItemManager.getSelectCageItem())) {
+                e.setCancelled(true);
+                if (swPlayer.getArena() != null && swPlayer.getArena().getArenaState().isAvailable()) {
+                    p.openInventory(plugin.menuManager.getCageInventory(swPlayer, swPlayer.getArena().getArenaMode().toString()));
                 }
                 return;
             }

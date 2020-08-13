@@ -8,6 +8,7 @@ import me.uniodex.skywars.arena.ArenaSaveBlocksTask;
 import me.uniodex.skywars.arena.Cuboid;
 import me.uniodex.skywars.enums.ArenaState;
 import me.uniodex.skywars.enums.SpecialCharacter;
+import me.uniodex.skywars.managers.arena.ArenaStartManager;
 import me.uniodex.skywars.player.SWOnlinePlayer;
 import me.uniodex.skywars.utils.ItemStackBuilder;
 import me.uniodex.skywars.utils.Utils;
@@ -360,11 +361,20 @@ public class BaseCommand implements CommandExecutor {
                     sender.sendMessage(plugin.customization.prefix + "There must be at least 2 teams for the arena to start!");
                     return true;
                 }
-                arena.start();
+                new ArenaStartManager(arena, plugin);
+                //arena.start();
                 sender.sendMessage(plugin.customization.prefix + "You have forced the arena " + ChatColor.YELLOW + arena.getArenaName() + ChatColor.GRAY + " to start!");
                 return true;
             }
-
+            if (command.equals("ucur")) {
+                p.setVelocity(p.getLocation().add(0, 5, 0).getDirection().multiply(5));
+                p.getWorld().createExplosion(p.getLocation(), 0);
+            }
+            if (command.equalsIgnoreCase("iteminfo")) {
+                ItemStack item = p.getItemInHand();
+                if (item == null) { return true;}
+                p.sendMessage(item.getType().toString());
+            }
             if (command.equals("stop")) {
                 if (!checkSender(sender, false, "skywars.stop")) return true;
                 String arenaName;
@@ -747,6 +757,24 @@ public class BaseCommand implements CommandExecutor {
             //Unknown command
             sender.sendMessage(plugin.customization.messages.get("Unknown-Command"));
 
+        } else if (commandLabel.equalsIgnoreCase("disguise")) {
+            if (sender instanceof Player) {
+                if (plugin.bukkitPlayerManager.disguisedPlayers.containsKey(sender.getName())) {
+                    sender.sendMessage(plugin.customization.prefix + "§cZaten dönüşüm aktif! Dönüşümü devre dışı bırakmak için '/undisguise' komutunu kullanın.");
+                } else {
+                    plugin.bukkitPlayerManager.disguisePlayer(((Player) sender).getPlayer(), null);
+                    sender.sendMessage(plugin.customization.prefix + "§aDönüşüm aktif edildi! Yeni kullanıcı adı: " + plugin.bukkitPlayerManager.disguisedPlayers.get(sender.getName()));
+                }
+            }
+        } else if (commandLabel.equalsIgnoreCase("undisguise")) {
+            if (sender instanceof Player) {
+                if (plugin.bukkitPlayerManager.disguisedPlayers.containsKey(sender.getName())) {
+                    plugin.bukkitPlayerManager.undisguisePlayer(((Player) sender).getPlayer(), true);
+                    sender.sendMessage(plugin.customization.prefix + "§aDönüşüm başarıyla devre dışı bırakıldı!");
+                } else {
+                    sender.sendMessage(plugin.customization.prefix + "§cAktif bir dönüşümünüz yok! Dönüşmek için '/disguise' komutunu kullanın!");
+                }
+            }
         } else if (commandLabel.equalsIgnoreCase("stats") || commandLabel.equalsIgnoreCase("istatistikler")) {
             if ((sender instanceof Player) && (args.length == 0)) {
                 p.openInventory(plugin.menuManager.getStatsInventory(swPlayer.getSWOfflinePlayer()));

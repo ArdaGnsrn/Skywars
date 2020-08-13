@@ -96,6 +96,10 @@
             <id>simonsators-repo</id>
             <url>http://simonsator.de/repo/</url>
         </repository>
+        <repository>
+            <id>codemc-snapshots</id>
+            <url>https://repo.codemc.org/repository/maven-snapshots/</url>
+        </repository>
     </repositories>
 
     <dependencies>
@@ -153,23 +157,41 @@
         <dependency>
             <groupId>ProtocolLib</groupId>
             <artifactId>ProtocolLib</artifactId>
-            <version>4.1.0</version>
+            <version>LATEST</version>
             <scope>system</scope>
-            <systemPath>${basedir}/lib/ProtocolLib4.1.0.jar</systemPath>
+            <systemPath>${basedir}/lib/ProtocolLib.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>FAWE</groupId>
             <artifactId>FAWE</artifactId>
-            <version>18.06.10-9144d37-1142-20.1.12</version>
+            <version>LATEST</version>
             <scope>system</scope>
-            <systemPath>${basedir}/lib/FastAsyncWorldEdit-bukkit-18.06.10-9144d37-1142-20.1.12.jar</systemPath>
+            <systemPath>${basedir}/lib/FastAsyncWorldEdit-bukkit-19.11.13-5505943-1282-22.3.5.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>WorldEdit</groupId>
             <artifactId>WorldEdit</artifactId>
-            <version>6.1.7.3</version>
+            <version>LATEST</version>
             <scope>system</scope>
-            <systemPath>${basedir}/lib/worldedit-bukkit-6.1.7.3.jar</systemPath>
+            <systemPath>${basedir}/lib/worldedit-bukkit-6.1.9.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>HolographicDisplays</groupId>
+            <artifactId>HolographicDisplays</artifactId>
+            <version>LATEST</version>
+            <scope>system</scope>
+            <systemPath>${basedir}/lib/HolographicDisplays.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.16.16</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com</groupId>
+            <artifactId>skinsrestorer</artifactId>
+            <version>13.7.5-SNAPSHOT</version>
         </dependency>
     </dependencies>
 

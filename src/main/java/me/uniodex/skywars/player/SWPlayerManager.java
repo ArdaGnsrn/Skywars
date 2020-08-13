@@ -10,6 +10,7 @@ import me.uniodex.skywars.utils.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
+import skinsrestorer.shared.exception.SkinRequestException;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -32,10 +33,8 @@ public class SWPlayerManager {
         SWOfflinePlayer player = new SWOfflinePlayer(plugin, playerName);
         return player;
     }
-
-    public SWOnlinePlayer getSWOnlinePlayer(String playerName) {
-        return onlinePlayers.get(playerName);
-    }
+    public SWOnlinePlayer getSWOnlinePlayer(Player player) { return onlinePlayers.get(player.getName()); }
+    public SWOnlinePlayer getSWOnlinePlayer(String playerName) { return onlinePlayers.get(playerName); }
 
     public void onSWPlayerJoin(Player player) {
         onlinePlayers.put(player.getName(), new SWOnlinePlayer(plugin, player));
@@ -45,7 +44,7 @@ public class SWPlayerManager {
         }
 
         SWOfflinePlayer offlinePlayer = plugin.playerManager.getSWPlayer(player.getName());
-        PlayerParty party = offlinePlayer.getParty();
+        /*PlayerParty party = offlinePlayer.getParty();
         // Partisi varsa ve kişi parti lideriyse
         if (party != null && party.getLeader().getName().equalsIgnoreCase(player.getName())) {
             sendPlayerToANewGame(getSWOnlinePlayer(player.getName()));
@@ -53,10 +52,10 @@ public class SWPlayerManager {
         }
 
         // Partisi yoksa ya da parti lideri oyunda değilse
-        if (party == null || (!onlinePlayers.containsKey(party.getLeader().getName()))) {
+        if (party == null || (!onlinePlayers.containsKey(party.getLeader().getName()))) {*/
             sendPlayerToANewGame(getSWOnlinePlayer(player.getName()));
-            return;
-        }
+            //return;
+        /*}
 
         String playerName = player.getName();
         Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
@@ -68,7 +67,7 @@ public class SWPlayerManager {
                     }
                 }
             }
-        }, 20L);
+        }, 20L);*/
     }
 
     public void leave(String playerName) {
@@ -116,14 +115,14 @@ public class SWPlayerManager {
             return;
         }
         SWOfflinePlayer offlinePlayer = p.getSWOfflinePlayer();
-        PlayerParty party = offlinePlayer.getParty();
-        ArrayList<SWOnlinePlayer> players = new ArrayList<SWOnlinePlayer>();
+        /*PlayerParty party = offlinePlayer.getParty();
+        ArrayList<SWOnlinePlayer> players = new ArrayList<SWOnlinePlayer>();*/
         Arena arena = null;
-        // Parti yok mu
+        /*// Parti yok mu
         if (party == null) {
-            players.add(p);
+            players.add(p);*/
             arena = plugin.arenaManager.getAvailableArena(1);
-            // Oyuncu parti lideri değil mi
+         /*   // Oyuncu parti lideri değil mi
         } else if (!party.getLeader().getName().equals(offlinePlayer.getName())) {
             players.add(p);
             SWOnlinePlayer partyLeader = plugin.playerManager.getSWOnlinePlayer(party.getLeader().getName());
@@ -153,19 +152,19 @@ public class SWPlayerManager {
                 }
             }
             arena = plugin.arenaManager.getAvailableArena(players.size());
-        }
+        }*/
 
         final Arena selectedArena = arena;
 
-        if (players.size() < 1) {
+       /* if (players.size() < 1) {
             return;
-        }
+        }*/
 
         if (plugin.serverWillStop) {
             arena = null;
         }
 
-        if (selectedArena == null) {
+        /*if (selectedArena == null) {
             for (SWOnlinePlayer swPlayer : players) {
                 Player bukkitPlayer = swPlayer.getPlayer();
                 final String playerName = swPlayer.getName();
@@ -183,9 +182,9 @@ public class SWPlayerManager {
                 }, 5L);
             }
             return;
-        }
+        }*/
 
-        if (party == null) {
+       // if (party == null) {
             if (p.getArena() != null) {
                 p.getArena().quitPlayer(p.getName());
             }
@@ -199,9 +198,8 @@ public class SWPlayerManager {
                     }
                 }
             }, 3L);
-            return;
-        }
-
+      //  }
+/*
         if (party.getLeader().getName().equals(offlinePlayer.getName())) {
             for (SWOnlinePlayer partyMember : players) {
                 if (partyMember == null) {
@@ -236,7 +234,7 @@ public class SWPlayerManager {
                     }
                 }
             }, 3L);
-        }
+        }*/
     }
 
     public int getCoin(String player) {

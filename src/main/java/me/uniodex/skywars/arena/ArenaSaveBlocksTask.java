@@ -86,7 +86,7 @@ public class ArenaSaveBlocksTask {
                     wp.teleport(plugin.lobbyLocation);
                 }
             }
-            if (!Bukkit.getServer().unloadWorld(Bukkit.getWorld(worldName), true)) {
+            if (!Bukkit.getServer().unloadWorld(Bukkit.getWorld(worldName), false)) {
                 Bukkit.getLogger().log(Level.SEVERE, "Dünya kaydedilirken bir sorun oluştu! Hata Kodu: A1");
             }
         }

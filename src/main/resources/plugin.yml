@@ -2,7 +2,7 @@ name: Skywars
 version: 4.2
 author: UnioDex
 main: me.uniodex.skywars.Skywars
-depend: [ProtocolLib, FastAsyncWorldEdit]
+depend: [ProtocolLib, FastAsyncWorldEdit, HolographicDisplays]
 softdepend: [Vault]
 commands:
   skywars:
@@ -28,3 +28,11 @@ commands:
   coin:
     description: uCoin
     aliases: [ucoin]
+  disguise:
+    permission: op
+    description: Disguise
+    aliases: [dis]
+  undisguise:
+    permission: op
+    description: unDisguise
+    aliases: [undis]

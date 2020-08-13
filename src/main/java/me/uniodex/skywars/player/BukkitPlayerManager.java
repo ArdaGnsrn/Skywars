@@ -1,5 +1,6 @@
 package me.uniodex.skywars.player;
 
+import lombok.SneakyThrows;
 import me.uniodex.skywars.Skywars;
 import me.uniodex.skywars.enums.DefaultFontInfo;
 import me.uniodex.skywars.objects.Kit;
@@ -7,13 +8,20 @@ import me.uniodex.skywars.utils.Nickname;
 import me.uniodex.skywars.utils.SkinChanger;
 import me.uniodex.skywars.utils.UUIDFetcher;
 import me.uniodex.skywars.utils.Utils;
+import me.uniodex.skywars.utils.packages.RandomNameGenerator;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import skinsrestorer.bukkit.SkinsRestorer;
+import skinsrestorer.bukkit.SkinsRestorerBukkitAPI;
+import skinsrestorer.bungee.SkinsRestorerBungeeAPI;
+import skinsrestorer.shared.exception.SkinRequestException;
+import skinsrestorer.shared.utils.SkinsRestorerAPI;
 
 import java.util.HashMap;
 
@@ -56,7 +64,8 @@ public class BukkitPlayerManager {
             Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
                 public void run() {
                     p.getInventory().setItem(0, plugin.clickableItemManager.getSelectKitItem());
-                    p.getInventory().setItem(1, plugin.clickableItemManager.getVoteItem());
+                    p.getInventory().setItem(1, plugin.clickableItemManager.getSelectCageItem());
+                    p.getInventory().setItem(2, plugin.clickableItemManager.getVoteItem());
                     p.getInventory().setItem(8, plugin.clickableItemManager.getQuitItem());
                 }
             }, 1L);
@@ -261,26 +270,28 @@ public class BukkitPlayerManager {
     }
 
     public void disguisePlayer(Player player, String displayName) {
+        if (displayName == null) {
+            displayName = RandomNameGenerator.generateName();
+            plugin.sqlManager.updateSQL("INSERT INTO `" + plugin.sqlManager.database + "`.`usw_disguise` (`player`, `displayName`) VALUES ('" + player.getName() + "', '" + displayName + "');");
+        }
         disguisedPlayers.put(player.getName(), displayName);
         player.setDisplayName(ChatColor.DARK_AQUA + displayName);
+        String finalDisplayName = displayName;
         SkinChanger.nick(player, new Nickname(UUIDFetcher.getUUID(displayName), ChatColor.GRAY, displayName));
     }
 
-    public void undisguisePlayer(Player p) {
-        if (p == null) {
+    public void undisguisePlayer(Player p, boolean delete) {
+        if (p == null || !disguisedPlayers.containsKey(p.getName())) {
             return;
         }
-        if (!disguisedPlayers.containsKey(p.getName())) {
-            return;
+        if (delete) {
+            plugin.sqlManager.updateSQL("DELETE FROM `" + plugin.sqlManager.database + "`.`usw_disguise` WHERE `player` = '" + p.getName() + "';");
         }
-
         disguisedPlayers.remove(p.getName());
-        if (SkinChanger.isNicked(p)) {
-            SkinChanger.unNick(p);
-        }
-
+        if (SkinChanger.isNicked(p)) { SkinChanger.unNick(p); }
         p.setDisplayName(p.getName());
         p.setPlayerListName(p.getName());
-        plugin.sqlManager.addPlayerToResetList(p.getName());
+
+        //plugin.sqlManager.addPlayerToResetList(p.getName());
     }
 }

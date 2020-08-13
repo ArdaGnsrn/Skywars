@@ -87,13 +87,13 @@ Chest-Checks:
 Bungee-Mode:
   hub: Lobi1
 MySQL:
-  enabled: false
+  enabled: true
   table: ''
-  host: ''
+  host: 'mysql.imperialcube.com'
   port: 3306
-  database: skywars
-  username: skywars
-  password: ''
+  database: database
+  username: username
+  password: 'pass'
   max_uuid_size: 36
 Rollback:
   Scan-Speed: 50000

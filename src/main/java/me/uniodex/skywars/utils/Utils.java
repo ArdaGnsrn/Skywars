@@ -4,6 +4,8 @@ import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import com.mojang.authlib.properties.PropertyMap;
 import me.uniodex.skywars.Skywars;
+import me.uniodex.skywars.enums.ArenaMode;
+import me.uniodex.skywars.enums.NextEvent;
 import me.uniodex.skywars.player.SWOnlinePlayer;
 import me.uniodex.skywars.utils.packages.menubuilder.inventory.InventoryMenuBuilder;
 import net.minecraft.server.v1_8_R3.NBTTagCompound;
@@ -11,6 +13,8 @@ import net.minecraft.server.v1_8_R3.NBTTagList;
 import org.bukkit.*;
 import org.bukkit.craftbukkit.v1_8_R3.inventory.CraftItemStack;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -20,6 +24,7 @@ import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.potion.Potion;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.bukkit.util.Vector;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -416,5 +421,54 @@ public class Utils {
             }
         }
         return selectedServer;
+    }
+
+
+    public static void setKnockback(Entity center, double radius) {
+        setKnockback(center.getLocation(), radius);
+    }
+    public static void setKnockback(Location target, double radius) {
+        int maxHeight = 15;
+        Collection<Entity> nearbyEntities = target.getWorld().getNearbyEntities(target, radius, radius, radius);
+        if ((nearbyEntities == null) || nearbyEntities.isEmpty()) { return; }
+        List<LivingEntity> validEntities = new ArrayList<>();
+        for (Entity entity : nearbyEntities) {
+            if (entity.isValid() && (entity instanceof LivingEntity)) {
+                validEntities.add((LivingEntity) entity);
+            }
+        }
+        for (LivingEntity entity : validEntities) {
+            if ((entity instanceof Player)) {
+                Player player = (Player) entity;
+                if (player.isFlying()||player.isConversing()) {
+                    continue;
+                }
+            }
+            double distance = (maxHeight - entity.getLocation().distance(target));
+            double TWO_PI = 1.76 * Math.PI;
+            Vector variantVel = entity.getLocation().getDirection().multiply(-1);
+            variantVel = variantVel.setY(distance / TWO_PI);
+            entity.setVelocity(variantVel);
+        }
+        return;
+    }
+    public static String getNextEventFormatted(NextEvent event) {
+        if (event == NextEvent.REFILL) {
+            return "Yenilenme";
+        } else if (event == NextEvent.HELL) {
+            return c("&cCehennem");
+        }
+        return "";
+    }
+    public static String c(String text) {
+        if (text == null) { return ""; }
+        return ChatColor.translateAlternateColorCodes('&', text);
+    }
+    public static ArenaMode getArenaMode(int teamSize) {
+        if (teamSize == 1) {
+            return ArenaMode.SOLO;
+        } else {
+            return ArenaMode.DUO;
+        }
     }
 }

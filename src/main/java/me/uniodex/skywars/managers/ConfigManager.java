@@ -1,7 +1,9 @@
 package me.uniodex.skywars.managers;
 
 import me.uniodex.skywars.Skywars;
+import me.uniodex.skywars.utils.Utils;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 
@@ -14,6 +16,7 @@ public class ConfigManager {
 
     private Skywars plugin;
     private HashMap<String, FileConfiguration> configurations = new HashMap<String, FileConfiguration>();
+    private HashMap<String, String> messagesCache = new HashMap<>();
 
     public ConfigManager(Skywars plugin) {
         this.plugin = plugin;
@@ -184,5 +187,14 @@ public class ConfigManager {
             for (String f : file.list()) length += getSize(new File(file, f));
         } else length = file.length();
         return length;
+    }
+
+    public String getMessage(String path) {
+        if (messagesCache.containsKey(path)) {
+            return messagesCache.get(path);
+        }
+        String result = Utils.c(getCustomizationConfig().getString("Messages." + path));
+        messagesCache.put(path, result);
+        return result;
     }
 }

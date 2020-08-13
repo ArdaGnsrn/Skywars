@@ -20,7 +20,7 @@ public class SQLManager {
     private Skywars plugin;
 
     private Pool pool;
-    private String database;
+    public String database;
 
     public SQLManager(Skywars plugin, String table, String host, String port, String database, String username, String password) {
         pool = new Pool(CredentialPackageFactory.get(username, password), PoolDriver.MYSQL);
@@ -36,7 +36,7 @@ public class SQLManager {
         cleanOldSQLData();
     }
 
-    private boolean updateSQL(String QUERY) {
+    public boolean updateSQL(String QUERY) {
         try (Connection connection = pool.getConnection()) {
             PreparedStatement statement = connection.prepareStatement(QUERY);
             int count = statement.executeUpdate();

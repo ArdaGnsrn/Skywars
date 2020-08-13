@@ -53,110 +53,6 @@ public class ProtectionListeners implements Listener {
         }
     }
 
-    /**
-     * * * * * * * * * * * * *
-     * *
-     * *
-     * BLOCK LISTENERS		*
-     * *
-     * *
-     * * * * * * * * * ** * * *
-     */
-
-    @EventHandler(priority = EventPriority.HIGHEST)
-    public void onBlockPlace(BlockPlaceEvent e) {
-        if (e.isCancelled()) return;
-
-        Player p = e.getPlayer();
-        if (plugin.playerManager.editMode.contains(p.getName())) {
-            return;
-        }
-        SWOnlinePlayer swPlayer = plugin.playerManager.getSWOnlinePlayer(p.getName());
-        Arena arena = swPlayer.getArena();
-
-        if (!swPlayer.canBuild()) {
-            e.setCancelled(true);
-            return;
-        }
-
-        //Prevents building outside the arena cuboid
-        if (arena != null && !arena.getCuboid().contains(e.getBlock().getLocation())) {
-            e.setCancelled(true);
-            Location l = e.getBlockAgainst().getLocation().clone().add(0.5, 1, 0.5);
-            l.setPitch(p.getLocation().getPitch());
-            l.setYaw(p.getLocation().getYaw());
-            while (l.getBlock().getType() != Material.AIR) {
-                l.add(0, 1, 0);
-            }
-            p.teleport(l);
-        }
-    }
-
-    @EventHandler(priority = EventPriority.HIGHEST)
-    public void onBlockBreak(BlockBreakEvent e) {
-        if (e.isCancelled()) return;
-
-        Player p = e.getPlayer();
-        if (plugin.playerManager.editMode.contains(p.getName())) {
-            return;
-        }
-        SWOnlinePlayer swPlayer = plugin.playerManager.getSWOnlinePlayer(p.getName());
-        Arena arena = swPlayer.getArena();
-        Block b = e.getBlock();
-
-        if (!swPlayer.canBuild()) {
-            e.setCancelled(true);
-            return;
-        }
-
-        if (arena != null) {
-            Team team = swPlayer.getArena().getTeam(swPlayer);
-            if (team != null && team.getSize() > 1) {
-                Location bLoc = b.getLocation().add(0, 1, 0);
-                for (OfflinePlayer player : team.getPlayers()) {
-                    if (player instanceof Player && !player.getName().equals(p.getName())) {
-                        if (((Player) player).getLocation().getBlock().getLocation().equals(bLoc)) {
-                            p.sendMessage(plugin.customization.messages.get("Block-Break-Below-Team"));
-                            e.setCancelled(true);
-                            return;
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    @EventHandler
-    public void onBlockCanBuild(BlockCanBuildEvent e) {
-        if (e.isBuildable()) return;
-        Block b = e.getBlock();
-        for (Arena arena : plugin.arenaManager.getArenas().values()) {
-            if (arena.getCuboid().contains(b.getLocation())) {
-                for (Player spec : Utils.getPlayers(arena.getSpectators())) {
-                    if (spec.getWorld().getName().equals(b.getWorld().getName()) && spec.getLocation().distance(b.getLocation()) < 6) {
-                        e.setBuildable(true);
-                        break;
-                    }
-                }
-                break;
-            }
-        }
-    }
-
-    @EventHandler
-    public void onBlockFromToEvent(BlockFromToEvent e) {
-        Location bl = e.getBlock().getLocation();
-        if (plugin.arenaManager.getArenas() == null) {
-            return;
-        }
-
-        for (Arena arena : plugin.arenaManager.getArenas().values()) {
-            if (arena.getCuboid().contains(bl) && !arena.getCuboid().contains(e.getToBlock().getLocation())) {
-                e.setCancelled(true);
-                return;
-            }
-        }
-    }
 
     /**
      * * * * * * * * * * * * *
@@ -168,7 +64,7 @@ public class ProtectionListeners implements Listener {
      * * * * * * * * * ** * * *
      */
 
-    @EventHandler
+   @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
         if (event.isCancelled()) return;
         if (plugin.playerManager.editMode.contains(event.getWhoClicked().getName())) {
@@ -191,7 +87,7 @@ public class ProtectionListeners implements Listener {
             ItemStack item = event.getCurrentItem();
             if ((item != null) && (item.getType() == Material.ITEM_FRAME)) {
                 event.setCancelled(true);
-                p.sendMessage("§2[§bUnioCraft§2] §cBazı açıklardan dolayı fırlatıcıya eşya çerçevesi koyulması engellenmiştir!");
+                p.sendMessage("§2[§bImperialCube§2] §cBazı açıklardan dolayı fırlatıcıya eşya çerçevesi koyulması engellenmiştir!");
             }
         }
     }
@@ -595,7 +491,7 @@ public class ProtectionListeners implements Listener {
         }
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST)
+    /*@EventHandler(priority = EventPriority.HIGHEST)
     public void worldInit(WorldInitEvent event) {
         event.getWorld().setKeepSpawnInMemory(false);
         event.getWorld().setAutoSave(false);
@@ -613,5 +509,5 @@ public class ProtectionListeners implements Listener {
         World world = event.getWorld();
         world.setAutoSave(false);
         world.setKeepSpawnInMemory(false);
-    }
+    }*/
 }

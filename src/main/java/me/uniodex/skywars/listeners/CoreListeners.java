@@ -4,6 +4,7 @@ import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import me.uniodex.skywars.Skywars;
 import me.uniodex.skywars.arena.Arena;
+import me.uniodex.skywars.enums.ArenaMode;
 import me.uniodex.skywars.enums.ArenaState;
 import me.uniodex.skywars.enums.SpecialCharacter;
 import me.uniodex.skywars.objects.Trail;
@@ -29,6 +30,7 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.event.server.ServerListPingEvent;
+import org.bukkit.event.weather.WeatherChangeEvent;
 import org.bukkit.inventory.EnchantingInventory;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
@@ -36,6 +38,7 @@ import org.bukkit.material.Dye;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import javax.rmi.CORBA.Util;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
@@ -94,7 +97,7 @@ public class CoreListeners implements Listener {
     public void onPlayerQuit(PlayerQuitEvent event) {
         event.setQuitMessage(null);
         Player p = event.getPlayer();
-        plugin.bukkitPlayerManager.undisguisePlayer(p);
+        plugin.bukkitPlayerManager.undisguisePlayer(p, false);
         if (plugin.playerManager.editMode.contains(p.getName())) {
             plugin.playerManager.editMode.remove(p.getName());
             return;
@@ -128,6 +131,9 @@ public class CoreListeners implements Listener {
         }
 
         if (plugin.arenaManager.getAvailableArena(1) == null) {
+            if (event.getName().equals("ArdaGnsrn")) {
+                return;
+            }
             event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER, "§c§lMaalesef müsait arena yok. Lütfen giriş yapabilmek için bir süre bekleyiniz.");
         }
     }
@@ -190,7 +196,7 @@ public class CoreListeners implements Listener {
         }
     }
 
-    @EventHandler
+    @EventHandler (priority = EventPriority.HIGH)
     public void onPlayerChat(AsyncPlayerChatEvent event) {
         Player p = event.getPlayer();
         SWOnlinePlayer swPlayer = plugin.playerManager.getSWOnlinePlayer(p.getName());
@@ -206,9 +212,9 @@ public class CoreListeners implements Listener {
         if (arena == null) {
             event.setCancelled(true);
         } else {
-            if (!arena.getArenaState().equals(ArenaState.ENDING) && arena.getSpectators().contains(swPlayer)) {
+            if (!(arena.getArenaState() == ArenaState.ENDING) && arena.getSpectators().contains(swPlayer)) {
                 if (plugin.config.spectatorsChat) {
-                    event.setFormat("§7[İZLEYİCİ] §f| " + ChatColor.translateAlternateColorCodes('&', prefix) + ChatColor.translateAlternateColorCodes('&', playerName) + " §3-> §f" + message);
+                    event.setFormat("§7[İZLEYİCİ] §f| " + Utils.c(prefix + playerName) + " §3-> §f" + message);
                     event.getRecipients().clear();
                     for (Player spectator : Utils.getPlayers(arena.getSpectators())) {
                         event.getRecipients().add(spectator);
@@ -216,14 +222,16 @@ public class CoreListeners implements Listener {
                 }
             } else {
                 if (plugin.config.inGameChat) {
-                    event.setFormat(ChatColor.translateAlternateColorCodes('&', prefix) + ChatColor.translateAlternateColorCodes('&', playerName) + " §3-> §f" + message);
+                    event.setFormat(Utils.c(prefix + playerName) + " §3-> §f" + message);
                     event.getRecipients().clear();
                     for (Player arenaPlayer : arena.getPlayers()) {
                         event.getRecipients().add(arenaPlayer);
                     }
                 }
             }
+
         }
+
     }
 
     @EventHandler
@@ -354,7 +362,7 @@ public class CoreListeners implements Listener {
                 return;
             }
 
-            if (swPlayer.getArena().getArenaMode().equalsIgnoreCase("solo")) {
+            if (swPlayer.getArena().getArenaMode() == ArenaMode.SOLO) {
                 if ((pr.getType().equals(EntityType.ARROW) || pr.getType().equals(EntityType.SNOWBALL) || pr.getType().equals(EntityType.EGG)) && trails.containsKey(soloTrailName)) {
                     World w = shooter.getWorld();
                     if (!soloTrailName.equalsIgnoreCase("Default")) {
@@ -384,109 +392,7 @@ public class CoreListeners implements Listener {
         }
     }
 
-    @EventHandler
-    public void onPlayerInteract(PlayerInteractEvent event) {
-        Player p = event.getPlayer();
-        String playerName = p.getName();
-        SWOnlinePlayer swPlayer = plugin.playerManager.getSWOnlinePlayer(playerName);
 
-        if (event.getAction().equals(Action.RIGHT_CLICK_AIR) || event.getAction().equals(Action.RIGHT_CLICK_BLOCK)) {
-            if (p.getItemInHand().getType().equals(Material.MONSTER_EGG)) {
-                event.setCancelled(true);
-
-                if (event.getClickedBlock() == null) {
-                    return;
-                }
-
-                int id = p.getItemInHand().getDurability();
-                EntityType type = EntityType.fromId(id);
-
-                if (type == null && p.getItemInHand().getItemMeta().getDisplayName() != null) {
-                    String name = p.getItemInHand().getItemMeta().getDisplayName();
-                    type = EntityType.fromName(ChatColor.stripColor(name));
-                }
-
-                if (type != null) {
-                    LivingEntity entity = (LivingEntity) p.getWorld().spawnEntity(event.getClickedBlock().getRelative(event.getBlockFace()).getLocation().add(0.5, 0, 0.5), type);
-                    entity.setCustomName(ChatColor.AQUA + p.getName() + "'in Yaratığı");
-                    entity.setCustomNameVisible(true);
-                    entity.setCanPickupItems(true);
-                    if (entity instanceof Ageable) {
-                        ((Ageable) entity).setAdult();
-                    }
-                    entity.setMetadata("SW_MOB", new FixedMetadataValue(plugin, true));
-
-                    if (entity instanceof Creature) {
-                        new BukkitRunnable() {
-                            public void run() {
-                                if (entity.isDead() || !entity.isValid()) {
-                                    cancel();
-                                    return;
-                                }
-
-                                if (swPlayer.getArena() == null || swPlayer.getArena().isAvailable() || swPlayer.getArena().getSpectators().contains(swPlayer)) {
-                                    entity.remove();
-                                    cancel();
-                                    return;
-                                }
-
-                                if (plugin.config.teleportMobs && p != null) {
-                                    if (entity.getWorld().getName().equals(p.getWorld().getName())) {
-                                        if (p.getLocation().distance(entity.getLocation()) > 20) {
-                                            entity.teleport(p.getLocation());
-                                        }
-                                    }
-                                }
-
-                                ArrayList<SWOnlinePlayer> enemies = swPlayer.getEnemies();
-
-                                if (enemies == null || enemies.isEmpty()) {
-                                    entity.remove();
-                                    return;
-                                }
-
-                                int distance = Integer.MAX_VALUE;
-                                Player nearest = null;
-
-                                for (SWOnlinePlayer enemy : enemies) {
-                                    Player enemyPlayer = enemy.getPlayer();
-
-                                    if (!entity.getWorld().getName().equals(enemyPlayer.getWorld().getName())) {
-                                        continue;
-                                    }
-
-                                    double current_distance = enemyPlayer.getLocation().distance(entity.getLocation());
-                                    if (current_distance < distance) {
-                                        distance = (int) current_distance;
-                                        nearest = enemyPlayer;
-                                    }
-                                }
-
-                                if (nearest != null) {
-                                    if (!entity.getType().equals(EntityType.PIG)) {
-                                        ((Creature) entity).setTarget(nearest);
-                                    }
-                                } else {
-                                    entity.remove();
-                                    cancel();
-                                }
-
-                            }
-                        }.runTaskTimer(plugin, 0L, 40);
-                    }
-
-                } else {
-                    p.sendMessage(plugin.customization.messages.get("Invalid-Entity"));
-                }
-
-                if (p.getItemInHand().getAmount() > 1) {
-                    p.getItemInHand().setAmount(p.getItemInHand().getAmount() - 1);
-                } else {
-                    p.setItemInHand(new ItemStack(Material.AIR));
-                }
-            }
-        }
-    }
 
     /*
      *
@@ -614,5 +520,10 @@ public class CoreListeners implements Listener {
         } else {
             e.setMotd("SUNUCU MÜSAİT");
         }
+    }
+
+    @EventHandler
+    private void on(WeatherChangeEvent e) {
+        e.setCancelled(e.toWeatherState());
     }
 }

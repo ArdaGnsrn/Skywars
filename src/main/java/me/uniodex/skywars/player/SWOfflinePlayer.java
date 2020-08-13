@@ -57,7 +57,10 @@ public class SWOfflinePlayer {
         if (pafPlayer == null) {
             return null;
         }
-        PlayerParty party = PartyManager.getInstance().getParty(pafPlayer);
+        PlayerParty party = null;
+        if (!(PartyManager.getInstance().getParty(pafPlayer) == null)) {
+             party = PartyManager.getInstance().getParty(pafPlayer);
+        }
         return party;
     }
 }

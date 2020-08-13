@@ -3,11 +3,17 @@ package me.uniodex.skywars.player;
 import me.uniodex.skywars.Skywars;
 import me.uniodex.skywars.arena.Arena;
 import me.uniodex.skywars.enums.ArenaState;
+import me.uniodex.skywars.utils.Utils;
+import me.uniodex.skywars.utils.packages.actionbarapi.ActionBarAPI;
+import net.md_5.bungee.api.ChatMessageType;
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
+import java.awt.*;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
@@ -22,6 +28,7 @@ public class SWOnlinePlayer {
     private String playerName;
 
     private Arena arena;
+    private int lastKillsAmount = 0;
     private HashMap<String, Long> cooldowns = new HashMap<String, Long>();
     private String lastAttacker = "";
     private long lastAttackedTime = 0;
@@ -54,6 +61,18 @@ public class SWOnlinePlayer {
             throw new NullPointerException("Belirtilen oyuncu bulunamadı.");
         }
     }
+
+    public void startActionBarTask() {
+        actionBarTask = Bukkit.getScheduler().runTaskTimer(plugin, new Runnable() {
+            @Override
+            public void run() {
+                String killAmount = arena.getKillers().containsKey(playerName) ? String.valueOf(arena.getKillers().get(playerName)) : "0";
+                String text = Utils.c("&6&lLeşler: &f" + killAmount + " &0: &6&lSiz: &f" + playerName);
+                ActionBarAPI.sendActionBar(player, text);
+            }
+        }, 20L, 20L);
+
+   }
 
     public Player getPlayer() {
         if (player != null) {

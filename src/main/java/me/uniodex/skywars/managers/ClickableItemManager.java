@@ -8,7 +8,7 @@ public class ClickableItemManager {
 
     private Skywars plugin;
 
-    private ItemStack wandItem, chestToolItem, emptyItem, saveItem, plusItem, minusItem, quitItem, statsItem, teleporterItem, backItem, voteItem, achievementsItem, confirmItem, cancelItem, nextItem, previousItem, newGameItem, selectKitItem;
+    private ItemStack wandItem, selectCageItem, chestToolItem, emptyItem, saveItem, plusItem, minusItem, quitItem, statsItem, teleporterItem, backItem, voteItem, achievementsItem, confirmItem, cancelItem, nextItem, previousItem, newGameItem, selectKitItem;
 
     public ClickableItemManager(Skywars plugin) {
         this.plugin = plugin;
@@ -34,6 +34,8 @@ public class ClickableItemManager {
         previousItem = Utils.getItemStack(plugin.configManager.getCustomizationConfig().getString("Items.Previous"), false, true);
         newGameItem = Utils.getItemStack(plugin.configManager.getCustomizationConfig().getString("Items.NewGame"), false, true);
         selectKitItem = Utils.getItemStack(plugin.configManager.getCustomizationConfig().getString("Items.SelectKit"), false, true);
+        selectCageItem = Utils.getItemStack(plugin.configManager.getCustomizationConfig().getString("Items.SelectCage"), false, true);
+
     }
 
     public ItemStack getWandItem() {
@@ -106,5 +108,8 @@ public class ClickableItemManager {
 
     public ItemStack getSelectKitItem() {
         return selectKitItem;
+    }
+    public ItemStack getSelectCageItem() {
+        return selectCageItem;
     }
 }

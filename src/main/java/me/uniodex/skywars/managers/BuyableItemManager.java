@@ -238,7 +238,10 @@ public class BuyableItemManager {
 
         p.setSelectedItem(actualItemType, itemid);
         plugin.sqlManager.selectItem(p.getName(), itemid, itemType);
-        p.getPlayer().sendMessage("§2[§bUnioCraft§2] §aEşya başarıyla seçildi.");
+        p.getPlayer().sendMessage("§2[§bImperialCube§2] §aEşya başarıyla seçildi.");
+        if (actualItemType.equalsIgnoreCase("cage")) {
+            p.getPlayer().sendMessage("§2[§bImperialCube§2] §aSeçtiğiniz kafes bir sonraki oyununuzda aktif olacak!");
+        }
     }
 
     /* PUBLIC GET METHODS */

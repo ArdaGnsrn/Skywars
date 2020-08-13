@@ -4,6 +4,9 @@ import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import me.uniodex.skywars.Skywars;
 import me.uniodex.skywars.arena.Arena;
+import me.uniodex.skywars.arena.TeamData;
+import me.uniodex.skywars.enums.ArenaMode;
+import me.uniodex.skywars.objects.Cage;
 import me.uniodex.skywars.objects.Kit;
 import me.uniodex.skywars.player.SWOfflinePlayer;
 import me.uniodex.skywars.player.SWOnlinePlayer;
@@ -35,6 +38,7 @@ public class MenuManager {
 
     private Skywars plugin;
     private ItemListener emptyListener;
+    private ItemListener cageListener;
 
     public MenuManager(Skywars plugin) {
         this.plugin = plugin;
@@ -44,7 +48,14 @@ public class MenuManager {
                 return;
             }
         };
+        loadListeners();
+
     }
+    private void loadListeners() {
+    }
+
+
+
 
     public Inventory getStatsInventory(SWOfflinePlayer swPlayer) {
         InventoryMenuBuilder menu = new InventoryMenuBuilder(36, "§1İstatistikler > " + swPlayer.getName());
@@ -339,41 +350,76 @@ public class MenuManager {
                 }
                 menuSize++;
             }
-            if (menuSize < 9) {
-                menuSize = 9;
-            } else if (menuSize >= 9 && menuSize < 18) {
-                menuSize = 18;
-            } else if (menuSize >= 18 && menuSize < 27) {
-                menuSize = 27;
-            } else if (menuSize >= 27 && menuSize < 36) {
-                menuSize = 36;
-            } else if (menuSize >= 36 && menuSize < 45) {
-                menuSize = 45;
-            } else if (menuSize >= 45 && menuSize < 54) {
-                menuSize = 54;
-            }
+            menuSize = Utils.getInventorySize(menuSize);
 
             InventoryMenuBuilder menu = new InventoryMenuBuilder(menuSize, plugin.customization.inventories.get("Spectator-Teleporter"));
             for (Player x : arena.getPlayers()) {
                 SWOnlinePlayer swPlayer = plugin.playerManager.getSWOnlinePlayer(x.getName());
-                if (arena.getSpectators().contains(swPlayer)) {
-                    continue;
-                }
+                if (arena.getSpectators().contains(swPlayer)) { continue; }
                 String name = plugin.bukkitPlayerManager.disguisedPlayers.containsKey(x.getName()) ? plugin.bukkitPlayerManager.disguisedPlayers.get(x.getName()) : x.getName();
-                menu.withItem(Utils.getSkull(name, ChatColor.AQUA + name), new ItemListener() {
-                    @Override
-                    public void onInteract(Player player, ClickType clickType, ItemStack itemStack) {
-                        Player target = x;
-                        if (target != null) {
-                            player.teleport(target.getLocation().add(0, 3, 0));
-                            player.closeInventory();
-                        }
-                    }
-                }, InventoryMenuBuilder.ALL_CLICK_TYPES);
+                menu.withItem(Utils.getSkull(name, ChatColor.AQUA + name), getSpectatorListener(x), InventoryMenuBuilder.ALL_CLICK_TYPES);
             }
             return menu.build();
         } else {
             return null;
         }
+    }
+    private ItemListener getSpectatorListener(Player x) {
+        return new ItemListener() {
+            @Override
+            public void onInteract(Player player, ClickType action, ItemStack item) {
+                Player target = x;
+                if (target != null) {
+                    player.teleport(target.getLocation().add(0, 3, 0));
+                    player.closeInventory();
+                }
+            }
+        };
+    }
+
+    public Inventory getCageInventory(SWOnlinePlayer swPlayer, String gameMode) {
+        InventoryMenuBuilder menu = new InventoryMenuBuilder(36, "§1Bir Kafes Kenar Seçin");
+        HashMap<String, Cage> cages = plugin.buyableItemManager.getCages();
+
+        int menuSlot = 0;
+        for (int i = 0; i < swPlayer.getPlayerCages().size(); i++) {
+            if (gameMode.equalsIgnoreCase("solo")) { if (swPlayer.getPlayerCages().get(i).contains("duo")) { continue; } }
+            else { if (swPlayer.getPlayerCages().get(i).contains("solo")) { continue; } }
+
+            final Cage cage = cages.get(swPlayer.getPlayerCages().get(i).replace("solo", "").replace("duo", ""));
+            ItemStack itm = plugin.buyableItemManager.getItem(swPlayer, cage, gameMode.equalsIgnoreCase("solo") ? "solocage" : "duocage");
+            if (gameMode.equalsIgnoreCase("solo")) {
+                if (cage.equals(cages.get(swPlayer.getSelectedItem("cage")))) { itm = Utils.addGlow(itm); } }
+            else {
+                if (cage.equals(cages.get(swPlayer.getSelectedItem("cage")))) { itm = Utils.addGlow(itm); } }
+            menu.withItem(menuSlot, itm, getCageListener(swPlayer, cage, gameMode), InventoryMenuBuilder.ALL_CLICK_TYPES);
+            menuSlot++;
+        }
+        for (Entry<String, Cage> entry : cages.entrySet()) {
+            final Cage cage = entry.getValue();
+            if (cage.itemId.equalsIgnoreCase("Default")) { continue; }
+            if (!plugin.buyableItemManager.playerHaveItem(swPlayer, cage.itemId, gameMode.equalsIgnoreCase("solo") ? "solocage" : "duocage")) {
+                menu.withItem(menuSlot, plugin.buyableItemManager.getItem(swPlayer, cage, gameMode.equalsIgnoreCase("solo") ? "solocage" : "duocage"), getCageListener(swPlayer, cage, gameMode), InventoryMenuBuilder.ALL_CLICK_TYPES);
+                menuSlot++;
+            }
+        }
+        return menu.build();
+    }
+    private ItemListener getCageListener(SWOnlinePlayer swPlayer, Cage cage, String gameMode) {
+        return new ItemListener() {
+            @Override
+            public void onInteract(Player player, ClickType action, ItemStack item) {
+                player.closeInventory();
+                if (plugin.buyableItemManager.playerHaveItem(swPlayer, cage.itemId, (gameMode.equalsIgnoreCase("solo") ? "solocage" : "duocage")) || cage.itemId.equalsIgnoreCase("Default")) {
+                    Bukkit.getScheduler().scheduleAsyncDelayedTask(plugin, new Runnable() {
+                        public void run() {
+                            plugin.buyableItemManager.selectItem(swPlayer, cage.itemId, (gameMode.equalsIgnoreCase("solo") ? "solocage" : "duocage"));
+                        }
+                    }, 1L);
+                } else {
+                    player.sendMessage(plugin.customization.prefix + "§cBu kafese sahip olmadığınız için seçemezsiniz!");
+                }
+            }
+        };
     }
 }

@@ -9,10 +9,7 @@ import me.uniodex.skywars.commands.BaseCommand;
 import me.uniodex.skywars.customization.Config;
 import me.uniodex.skywars.customization.Customization;
 import me.uniodex.skywars.enums.ArenaState;
-import me.uniodex.skywars.listeners.ClickableItemListeners;
-import me.uniodex.skywars.listeners.CoreListeners;
-import me.uniodex.skywars.listeners.ProtectionListeners;
-import me.uniodex.skywars.listeners.StatListeners;
+import me.uniodex.skywars.listeners.*;
 import me.uniodex.skywars.managers.*;
 import me.uniodex.skywars.party.SWPartyManager;
 import me.uniodex.skywars.player.BukkitPlayerManager;
@@ -67,6 +64,7 @@ public class Skywars extends JavaPlugin implements PluginMessageListener {
     public Customization customization;
     public Economy vault;
     public ConfigManager configManager;
+    public InteractionListeners interactionListeners;
     public ClickableItemManager clickableItemManager;
     public BuyableItemManager buyableItemManager;
     public SWPlayerManager playerManager;
@@ -77,6 +75,7 @@ public class Skywars extends JavaPlugin implements PluginMessageListener {
     public ScoreboardManager scoreboardManager;
     public WorldManager worldManager;
     public ClickableItemListeners clickableItemListeners;
+    public ChestEmptyListener chestEmptyListener;
     public CoreListeners coreListeners;
     public ProtectionListeners protectionListeners;
     public StatListeners statListeners;
@@ -93,10 +92,16 @@ public class Skywars extends JavaPlugin implements PluginMessageListener {
     private void preLoad() {
         allowJoin = false;
         instance = this;
-        if (Bukkit.getPluginManager().getPlugin("Spigot-Party-API-PAF") == null) {
+        /*if (Bukkit.getPluginManager().getPlugin("Spigot-Party-API-PAF") == null) {
+            Bukkit.getPluginManager().disablePlugin(this);
+            return;
+        }*/
+        if (!Bukkit.getPluginManager().getPlugin("HolographicDisplays").isEnabled()) {
+            getLogger().severe("HolographicDisplays not found!");
             Bukkit.getPluginManager().disablePlugin(this);
             return;
         }
+
         configManager = new ConfigManager(this);
         FileConfiguration customizationFile = configManager.getCustomizationConfig();
         customization = new Customization(customizationFile);
@@ -142,6 +147,8 @@ public class Skywars extends JavaPlugin implements PluginMessageListener {
         getCommand("komutlar").setExecutor(new BaseCommand(this));
         getCommand("coin").setExecutor(new BaseCommand(this));
         getCommand("ucoin").setExecutor(new BaseCommand(this));
+        getCommand("disguise").setExecutor(new BaseCommand(this));
+        getCommand("undisguise").setExecutor(new BaseCommand(this));
 
         Bukkit.getMessenger().registerIncomingPluginChannel(this, "Return", this);
     }
@@ -276,6 +283,9 @@ public class Skywars extends JavaPlugin implements PluginMessageListener {
         Bukkit.getPluginManager().registerEvents(protectionListeners = new ProtectionListeners(this), this);
         Bukkit.getPluginManager().registerEvents(statListeners = new StatListeners(this), this);
         Bukkit.getPluginManager().registerEvents(inventoryListener = new InventoryListener(this), this);
+        Bukkit.getPluginManager().registerEvents(interactionListeners = new InteractionListeners(this), this);
+        Bukkit.getPluginManager().registerEvents(chestEmptyListener = new ChestEmptyListener(this), this);
+
     }
 
     private boolean setupChat() {
@@ -332,6 +342,7 @@ public class Skywars extends JavaPlugin implements PluginMessageListener {
                 p.getPlayer().kickPlayer("Sunucu yeniden başlatılıyor!");
             }
         }
+        chestEmptyListener.deleteAllHolograms();
         CoreListeners.onDisable();
         sqlManager.onDisable();
         Bukkit.getMessenger().unregisterIncomingPluginChannel(this, "Return", this);
